@@ -2,11 +2,19 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
+const compression = require('compression');
 // Optional: Uncomment to enable rate limiting
 // const rateLimit = require('express-rate-limit');
 
 const app = express();
+
+// Enable trust proxy for HTTPS on global hosts
+app.set('trust proxy', 1);
+
+// Middleware
 app.use(cors());
+app.use(compression()); // Compress responses for better performance
+app.use(express.json()); // Parse JSON bodies (if needed for future endpoints)
 
 // Optional: Rate limiting middleware (uncomment to enable)
 // const limiter = rateLimit({
@@ -89,6 +97,11 @@ function shuffleArray(array) {
   }
   return array;
 }
+
+// Health check endpoint for load balancers
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK' });
+});
 
 app.get('/', (req, res) => {
   res.send('tiktok');
