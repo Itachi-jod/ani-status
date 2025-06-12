@@ -15,7 +15,7 @@ async function fetchDataWithRetry(username, retries = 2) {
       },
       data: {
         username: `@${username}`,
-        amount_of_posts: 10
+        amount_of_posts: 100
       }
     };
 
