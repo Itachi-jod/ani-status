@@ -1,16 +1,16 @@
 {
   "name": "kshitizgrxy-api",
   "version": "1.0.0",
-  "description": "Fetch TikTok videos for username kshitizgrxy via RapidAPI",
+  "description": "TikTok video fetcher API for username 'kshitizgrxy'",
   "main": "index.js",
   "scripts": {
     "start": "bun index.js"
   },
   "author": "Lord Itachi",
   "license": "MIT",
+  "type": "module",
   "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5"
-  },
-  "type": "module"
+    "express": "latest",
+    "cors": "latest"
+  }
 }
