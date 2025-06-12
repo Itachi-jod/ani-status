@@ -1,5 +1,6 @@
 const express = require('express');
 const axios = require('axios');
+const shuffle = require('lodash.shuffle');
 
 const app = express();
 
@@ -20,29 +21,31 @@ async function fetchDataWithRetry(username, retries = 2) {
     };
 
     const response = await axios.request(options);
-    const posts = response.data.posts.map(post => {
-      const playLinks = post.play_links;
-      if (playLinks.length > 0) {
-        return playLinks[0]; 
-      } else {
-        return null;
-      }
-    });
 
-    return posts.filter(post => post !== null); 
+    if (!response.data.posts || !Array.isArray(response.data.posts)) {
+      throw new Error("Invalid API response format");
+    }
+
+    const posts = response.data.posts
+      .map(post => post.play_links?.[0])
+      .filter(url => url);
+
+    return posts;
   } catch (error) {
-    console.error(error);
+    console.error("Error in fetchDataWithRetry:", error.message);
+
     if (retries > 0) {
-      console.log(`Retrying... (${retries} retries left)`);
       return fetchDataWithRetry(username, retries - 1);
     } else {
       throw new Error('Max retries exceeded');
     }
   }
 }
+
 app.get('/', (req, res) => {
   res.send('tiktok');
 });
+
 app.get('/itachi', async (req, res) => {
   try {
     const username = req.query.username;
@@ -52,17 +55,16 @@ app.get('/itachi', async (req, res) => {
 
     let posts = await fetchDataWithRetry(username);
     if (!posts || posts.length === 0) {
-      posts = await fetchDataWithRetry(username);
+      return res.status(404).json({ error: 'No videos found for this user' });
     }
 
-    const responseData = {
+    const randomPost = shuffle(posts)[0]; // pick one random video
+    res.json({
       user: username,
-      posts: posts
-    };
-
-    res.json(responseData);
+      url: randomPost
+    });
   } catch (error) {
-    console.error(error);
+    console.error("Error in /itachi route:", error.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
