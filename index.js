@@ -1,10 +1,5 @@
-/**
- * @author Lord Itachi
- */
-
 import express from 'express';
 import cors from 'cors';
-import fetch from 'node-fetch';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,7 +9,7 @@ app.use(cors());
 const RAPIDAPI_HOST = 'tiktok-scrapper-videos-music-challenges-downloader.p.rapidapi.com';
 const RAPIDAPI_KEY = '3641222daamsh414c9dca6784a8ep1f9b60jsn92b32450ebbf';
 
-const userId = '7024281421016237058'; // TikTok user ID for kshitizgrxy
+const userId = '7024281421016237058';
 
 let videoList = [];
 let currentIndex = 0;
@@ -68,7 +63,6 @@ app.get('/video', async (req, res) => {
   const video = videoList[currentIndex];
   currentIndex++;
 
-  // Return video info: you can customize fields based on actual API response
   res.json({
     id: video.id,
     description: video.description || '',
