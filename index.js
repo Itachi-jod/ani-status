@@ -1,71 +1,57 @@
 import express from "express";
 import cors from "cors";
-import fetch from "node-fetch";
+import puppeteer from "puppeteer";
 
 const app = express();
 app.use(cors());
 
-const rapidHost = "tiktok-scrapper-videos-music-challenges-downloader.p.rapidapi.com";
-const rapidKey = "3641222daamsh414c9dca6784a8ep1f9b60jsn92b32450ebbf";
+const username = "kshitizgrxy";
+let videoUrls = [];
+let currentIndex = 0;
 
-const cache = {}; // { username: { index: 0, videos: [...] } }
-
-async function getUserId(username) {
-  const url = `https://${rapidHost}/user/profile/${username}`;
-  const res = await fetch(url, {
-    headers: {
-      "x-rapidapi-host": rapidHost,
-      "x-rapidapi-key": rapidKey
-    }
+async function scrapeVideoUrls(username) {
+  const browser = await puppeteer.launch({
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
-  const data = await res.json();
-  return data?.data?.id || null;
-}
+  const page = await browser.newPage();
 
-async function fetchVideosForUser(userId) {
-  const url = `https://${rapidHost}/user/posts/${userId}`;
-  const res = await fetch(url, {
-    headers: {
-      "x-rapidapi-host": rapidHost,
-      "x-rapidapi-key": rapidKey
-    }
-  });
-  const data = await res.json();
-  return (data?.data || []).map(v => ({
-    id: v.id,
-    desc: v.desc,
-    videoUrl: v.video?.downloadAddr
-  })).filter(v => v.videoUrl);
-}
+  const url = `https://www.tiktok.com/@${username}`;
+  await page.goto(url, { waitUntil: "networkidle2" });
 
-app.get("/:username", async (req, res) => {
-  const username = req.params.username.toLowerCase();
-
-  if (!cache[username]) {
+  const urls = await page.evaluate(() => {
     try {
-      const userId = await getUserId(username);
-      if (!userId) return res.json({ error: "Invalid username or user not found." });
-
-      const videos = await fetchVideosForUser(userId);
-      if (!videos.length) return res.json({ error: "No videos found for this user." });
-
-      cache[username] = { index: 0, videos };
-    } catch (err) {
-      return res.json({ error: "Failed to fetch videos." });
+      const anchors = Array.from(document.querySelectorAll("a[href*='/video/']"));
+      const uniqueUrls = [...new Set(anchors.map(a => a.href))];
+      return uniqueUrls;
+    } catch {
+      return [];
     }
+  });
+
+  await browser.close();
+  return urls;
+}
+
+app.get("/", async (req, res) => {
+  try {
+    if (videoUrls.length === 0) {
+      videoUrls = await scrapeVideoUrls(username);
+      currentIndex = 0;
+      if (videoUrls.length === 0) {
+        return res.status(404).json({ error: "No videos found." });
+      }
+    }
+
+    const videoUrl = videoUrls[currentIndex];
+    currentIndex = (currentIndex + 1) % videoUrls.length;
+
+    res.json({ url: videoUrl });
+  } catch (e) {
+    res.status(500).json({ error: "Failed to fetch videos." });
   }
-
-  const userData = cache[username];
-  const video = userData.videos[userData.index];
-  userData.index = (userData.index + 1) % userData.videos.length;
-  res.json(video);
-});
-
-app.get("/", (req, res) => {
-  res.send("Welcome to TikTok Video API ! Use /<username> to get videos.");
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`TikTok video URL fetcher API running on port ${PORT}`);
 });
