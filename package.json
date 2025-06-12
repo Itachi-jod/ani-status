@@ -1,7 +1,7 @@
 {
-  "name": "kshitizgrxy-api",
+  "name": "tiktok-username-api",
   "version": "1.0.0",
-  "description": "TikTok video fetcher API for username 'kshitizgrxy'",
+  "description": "TikTok video fetcher by username",
   "main": "index.js",
   "scripts": {
     "start": "bun index.js"
@@ -11,6 +11,7 @@
   "type": "module",
   "dependencies": {
     "express": "latest",
-    "cors": "latest"
+    "cors": "latest",
+    "node-fetch": "latest"
   }
 }
