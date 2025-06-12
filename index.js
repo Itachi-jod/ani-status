@@ -14,6 +14,7 @@ const userId = '7024281421016237058';
 let videoList = [];
 let currentIndex = 0;
 
+// Fetch videos from RapidAPI
 async function fetchVideos() {
   const url = `https://${RAPIDAPI_HOST}/user/id/${userId}/videos`;
   try {
@@ -44,10 +45,18 @@ async function fetchVideos() {
   }
 }
 
+// Root route: sample video URLs
 app.get('/', (req, res) => {
-  res.send(`TikTok videos fetcher API for userId ${userId}. Use /video to get videos one by one.`);
+  res.json({
+    sample: [
+      "https://v16-webapp.tiktok.com/video1.mp4",
+      "https://v16-webapp.tiktok.com/video2.mp4",
+      "https://v16-webapp.tiktok.com/video3.mp4"
+    ]
+  });
 });
 
+// Route to get one video at a time
 app.get('/video', async (req, res) => {
   if (videoList.length === 0) {
     await fetchVideos();
@@ -74,6 +83,7 @@ app.get('/video', async (req, res) => {
   });
 });
 
+// Start server
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
